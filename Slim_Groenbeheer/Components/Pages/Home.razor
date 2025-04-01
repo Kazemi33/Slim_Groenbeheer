@@ -1,0 +1,94 @@
+﻿@page "/"
+@using Slim_Groenbeheer.Models
+@inject ApiService ApiService
+
+
+<PageTitle>Dashboard</PageTitle>
+
+<h1>Kassen grafiek</h1>
+
+@* Bar chart  *@
+@if (metingenData == null)
+{
+    <p><em>Loading...</em></p>
+}
+
+<BarChart @ref="barChart" Width="1000" Height="500" Class="hide-graph" />
+
+
+@code {
+    private BarChart? barChart = default;
+    private BarChartOptions barChartOptions = default!;
+    private ChartData chartData = default!;
+    private List<MetingenData>? metingenData;
+
+    List<string> labels = new List<string>();
+    List<double> waarden = new List<double>(); 
+
+    protected override async Task OnInitializedAsync()
+    {
+        //sensorData = await ApiService.GetSensorDataAsync();
+        metingenData = await ApiService.GetMetingenDataAsync();
+        // kassenData = await ApiService.GetKassenDataAsync();
+
+        if (metingenData == null || !metingenData.Any())
+        {
+            Console.WriteLine("⚠️ Geen data ontvangen!");
+            return;
+        }
+
+
+        @foreach (var item in metingenData)
+        {
+            labels.Add(item.moment.ToLongDateString());
+            waarden.Add(item.waarde);
+        }
+        var datasets = new List<IChartDataset>();
+
+        var kleuren = waarden.Select(w =>
+           w < 18 ? ColorUtility.CategoricalTwelveColors[6] :  // Blauw
+           w > 25 ? ColorUtility.CategoricalTwelveColors[9] :  // Rood
+                    ColorUtility.CategoricalTwelveColors[5]    // Groen
+       ).ToList();
+        var dataset1 = new BarChartDataset()
+            {
+                Data = waarden.Cast<double?>().ToList(),
+                BackgroundColor = kleuren,
+                BorderColor = kleuren,
+                BorderWidth = new List<double> { 0 },
+            };
+        datasets.Add(dataset1);
+
+
+
+        chartData = new ChartData { Labels = labels, Datasets = datasets };
+
+        barChartOptions = new BarChartOptions();
+        barChartOptions.Responsive = true;
+        // barChartOptions.Interaction = new Interaction { Mode = InteractionMode.Y };
+        barChartOptions.IndexAxis = "x";
+
+        barChartOptions.Scales.X!.Title = new ChartAxesTitle { Text = "Datum", Display = true };
+        barChartOptions.Scales.Y!.Title = new ChartAxesTitle { Text = "Waarde", Display = true };
+
+        barChartOptions.Plugins.Legend.Display = false;
+
+        barChart.Class = "show-graph";
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if(barChart is null)
+            {
+                return;
+            }
+            await barChart.InitializeAsync(chartData, barChartOptions);
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+   
+}
