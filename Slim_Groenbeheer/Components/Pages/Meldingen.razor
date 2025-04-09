@@ -1,147 +1,128 @@
-﻿@page "/meldingen"
+﻿@page "/metingen"
 @attribute [StreamRendering]
 @using Slim_Groenbeheer.Models
 @inject ApiService ApiService
 
-<PageTitle>Meldingen</PageTitle>
+<PageTitle>Metingen</PageTitle>
 
 <h1>Metingen</h1>
 
 <p>Hier kun je alle sensorwaarden per kas bekijken.</p>
 
-@if ( metingenData == null)
+@if (metingenData == null || sensorData == null || kassenData == null)
 {
     <p><em>Loading...</em></p>
 }
-  
-<Grid TItem="Employee1"
-      Class="table table-hover table-bordered"
-      DataProvider="EmployeesDataProvider"
-      AllowFiltering="true"
-      AllowPaging="true"
-      PageSize="5"
-      AllowSorting="true"
-      Responsive="true">
+else
+{
+    @foreach (var kas in kassenData)
+    {
+        <h2>Kas: @kas.kas_nummer - Locatie: @kas.locatie</h2>
 
-    <GridColumns>
-        <GridColumn TItem="Employee1" HeaderText="Id" PropertyName="Id" SortKeySelector="item => item.Id">
-            @context.Id
-        </GridColumn>
-        <GridColumn TItem="Employee1" HeaderText="Employee Name" PropertyName="Name" SortKeySelector="item => item.Name">
-            @context.Name
-        </GridColumn>
-        <GridColumn TItem="Employee1" HeaderText="Designation" PropertyName="Designation" SortKeySelector="item => item.Designation">
-            @context.Designation
-        </GridColumn>
-        <GridColumn TItem="Employee1" HeaderText="DOJ" PropertyName="DOJ" SortKeySelector="item => item.DOJ">
-            @context.DOJ
-        </GridColumn>
-        <GridColumn TItem="Employee1"
-                    HeaderText="Active"
-                    PropertyName="IsActive"
-                    SortKeySelector="item => item.IsActive"
-                    ColumnClass="@(x => x.IsActive ? "table-success" : "table-danger")">
-            @context.IsActive
-        </GridColumn>
-    </GridColumns>
+        var sensorsInKas = sensorData.Where(s => s.kas_id == kas.id).ToList();
+        var metingenInKas = metingenData
+            .Where(m => sensorsInKas.Any(s => s.id == m.sensor_id))
+            .OrderBy(m => m.sensor_id)
+            .ThenByDescending(m => m.moment)
+            .ToList();
 
-</Grid>
+        <Grid TItem="MetingenData"
+              Data="@metingenInKas"
+              Class="table table-hover table-bordered"
+              AllowPaging="true"
+              PageSize="5"
+              AllowSorting="true"
+              Responsive="true">
 
+            <GridColumns>
+                <GridColumn TItem="MetingenData" HeaderText="Sensor">
+                    @(sensorsInKas.FirstOrDefault(s => s.id == context.sensor_id)?.naam)
+                </GridColumn>
+                <GridColumn TItem="MetingenData" HeaderText="Waarde" SortKeySelector="item => item.waarde">
+                    @context.waarde
+                </GridColumn>
+                <GridColumn TItem="MetingenData" HeaderText="Tijd" SortKeySelector="item => item.moment">
+                    @context.moment.ToShortTimeString()
+                </GridColumn>
+                <GridColumn TItem="MetingenData" HeaderText="Datum" SortKeySelector="item => item.moment">
+                    @context.moment.ToShortDateString()
+                </GridColumn>
+                <GridColumn TItem="MetingenData"
+                            HeaderText="Status"
+                            ColumnClass="@(item => GetStatusClass(item))">
+                    @GetStatusLabel(context)
+                </GridColumn>
+
+            </GridColumns>
+
+        </Grid>
+    }
+}
 
 @code {
 
-    private List<SensorData> sensorData;
-    private List<MetingenData> metingenData;
-    private List<KassenData> kassenData;
+    private IEnumerable<SensorData>? sensorData;
+    private IEnumerable<KassenData>? kassenData;
+    private IEnumerable<MetingenData>? metingenData;
 
+    //private IEnumerable<MetingenData>? employees;
     protected override async Task OnInitializedAsync()
     {
         sensorData = await ApiService.GetSensorDataAsync();
-        metingenData = await ApiService.GetMetingenDataAsync();
         kassenData = await ApiService.GetKassenDataAsync();
-    }
-    private IEnumerable<Employee1>? employees;
-
-    private async Task<GridDataProviderResult<Employee1>> EmployeesDataProvider(GridDataProviderRequest<Employee1> request)
-    {
-        if (employees is null) // pull employees only one time for client-side filtering, sorting, and paging
-            employees = GetEmployees(); // call a service or an API to pull the employees
-
-        return await Task.FromResult(request.ApplyTo(employees));
+        metingenData = await ApiService.GetMetingenDataAsync();
     }
 
-    private IEnumerable<Employee1> GetEmployees()
+    private string GetStatusClass(MetingenData meting)
+{
+    var sensor = sensorData?.FirstOrDefault(s => s.id == meting.sensor_id);
+    if (sensor == null) return "table-secondary";
+
+    return sensor.naam.ToLower().Contains("vocht")
+            ? (meting.waarde < 50 ? "table-warning"
+           : meting.waarde <= 70 ? "table-success"
+           : "table-info")
+        : (meting.waarde < 18 ? "table-primary"
+           : meting.waarde <= 25 ? "table-success"
+           : "table-danger");
+}
+
+private string GetStatusLabel(MetingenData meting)
+{
+    var sensor = sensorData?.FirstOrDefault(s => s.id == meting.sensor_id);
+    if (sensor == null) return "Onbekend";
+
+    if (sensor.naam.ToLower().Contains("vocht"))
     {
-        return new List<Employee1>
-        {
-            new Employee1 { Id = 107, Name = "Alice", Designation = "AI Engineer", DOJ = new DateOnly(1998, 11, 17), IsActive = true },
-            new Employee1 { Id = 103, Name = "Bob", Designation = "Senior DevOps Engineer", DOJ = new DateOnly(1985, 1, 5), IsActive = true },
-            new Employee1 { Id = 106, Name = "John", Designation = "Data Engineer", DOJ = new DateOnly(1995, 4, 17), IsActive = true },
-            new Employee1 { Id = 104, Name = "Pop", Designation = "Associate Architect", DOJ = new DateOnly(1985, 6, 8), IsActive = false },
-            new Employee1 { Id = 105, Name = "Ronald", Designation = "Senior Data Engineer", DOJ = new DateOnly(1991, 8, 23), IsActive = true },
-            new Employee1 { Id = 102, Name = "Line", Designation = "Architect", DOJ = new DateOnly(1977, 1, 12), IsActive = true },
-            new Employee1 { Id = 101, Name = "Daniel", Designation = "Architect", DOJ = new DateOnly(1977, 1, 12), IsActive = true },
-            new Employee1 { Id = 113, Name = "Merlin", Designation = "Senior Consultant", DOJ = new DateOnly(1989, 10, 2), IsActive = true },
-            new Employee1 { Id = 117, Name = "Sharna", Designation = "Data Analyst", DOJ = new DateOnly(1994, 5, 12), IsActive = true },
-            new Employee1 { Id = 108, Name = "Zayne", Designation = "Data Analyst", DOJ = new DateOnly(1991, 1, 1), IsActive = true },
-            new Employee1 { Id = 109, Name = "Isha", Designation = "App Maker", DOJ = new DateOnly(1996, 7, 1), IsActive = true },
-            new Employee1 { Id = 111, Name = "Glenda", Designation = "Data Engineer", DOJ = new DateOnly(1994, 1, 12), IsActive = true },
-        };
+        return meting.waarde < 50 ? "Droog"
+             : meting.waarde <= 70 ? "Normaal"
+             : "Vochtig";
+    }
+    else
+    {
+        return meting.waarde < 18 ? "Koud"
+             : meting.waarde <= 25 ? "Normaal"
+             : "Warm";
     }
 }
-@* else *@
-@* { *@
-@*     <table class="table"> *@
-@*         <thead> *@
-@*             <tr> *@
-@*                 <th>Kasnummer</th> *@
-@*                 <th>Locataie</th> *@
-@*                 <th>Sensor</th> *@
-@*                 <th>Waarde</th> *@
-@*                 <th>Moment</th> *@
-@*                 <th>Datum</th> *@
-@*             </tr> *@
-@*         </thead> *@
-@*         <tbody> *@
-@*             @foreach (var item in metingenData) *@
-@*             { *@
-@*                 <tr> *@
-@*                     @foreach (var sensor in sensorData) *@
-@*                     { *@
-@*                         @if(sensor.id == item.sensor_id) *@
-@*                         { *@
-@*                             @foreach(var kas in kassenData) *@
-@*                             { *@
-@*                                 @if( kas.id == sensor.kas_id) *@
-@*                                 { *@
-@*                                     <td> @kas.kas_nummer</td> *@
-@*                                     <td> @kas.locatie</td> *@
-@*                                 } *@
-                                
-@*                             } *@
-@*                             <td>@sensor.naam</td> *@
-@*                             } *@
-@*                         } *@
-                   
-                    
-@*                     <td>@item.waarde</td> *@
-@*                     <td>@item.moment.ToShortTimeString()</td> *@
-@*                     <td>@item.moment.ToShortDateString()</td> *@
-@*                 </tr> *@
-@*             } *@
-@*         </tbody> *@
-@*     </table> *@
-@* } *@
 
-@* @code { *@
-@*     private List<SensorData> sensorData; *@
-@*     private List<MetingenData> metingenData; *@
-@*     private List<KassenData> kassenData; *@
 
-@*     protected override async Task OnInitializedAsync() *@
-@*     { *@
-@*         sensorData = await ApiService.GetSensorDataAsync(); *@
-@*         metingenData = await ApiService.GetMetingenDataAsync(); *@
-@*         kassenData = await ApiService.GetKassenDataAsync(); *@
-@*     } *@
-@* } *@
+
+
+    private async Task<GridDataProviderResult<MetingenData>> EmployeesDataProvider(GridDataProviderRequest<MetingenData> request)
+    {
+        if (metingenData is null || sensorData is null || kassenData is null){ 
+         
+            sensorData = await ApiService.GetSensorDataAsync();
+            kassenData = await ApiService.GetKassenDataAsync();
+            metingenData = await ApiService.GetMetingenDataAsync();
+        }
+        return await Task.FromResult(request.ApplyTo(metingenData));
+    }
+
+    private IEnumerable<MetingenData> GetEmployees()
+    {
+        return metingenData ?? new List<MetingenData>();
+       
+    }
+}

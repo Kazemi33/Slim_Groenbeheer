@@ -1,0 +1,66 @@
+﻿@page "/sensors"
+@using Slim_Groenbeheer.Models
+
+@inject ApiService ApiService
+
+<h3>Sensor List</h3>
+
+@if (sensorData == null)
+{
+    <p>Bezig met laden...</p>
+}
+
+<Grid TItem="SensorData"
+      AllowFiltering="false"
+      AllowSorting="true"
+      Class="table table-hover"
+      DataProvider="EmployeesDataProvider"
+      HeaderRowCssClass="bg-danger text-white border-bottom-0"
+      FiltersRowCssClass="bg-danger text-white bg-opacity-25 border-bottom-0"
+      Responsive="true">
+
+    <GridColumns>
+        <GridColumn TItem="SensorData" HeaderText="Sensor Id" PropertyName="Id" SortKeySelector="item => item.id">
+            @context.id
+        </GridColumn>
+
+        <GridColumn TItem="SensorData" HeaderText="Sensor Naam" PropertyName="Name" SortKeySelector="item => item.naam">
+            @context.naam
+        </GridColumn>
+
+        <GridColumn TItem="SensorData" HeaderText="Kas Id" PropertyName="KasId" SortKeySelector="item => item.kas_id">
+            @context.kas_id
+        </GridColumn>
+    </GridColumns>
+
+</Grid>
+
+@code {
+    private IEnumerable<SensorData> sensorData = default!;
+ 
+
+    protected override async Task OnInitializedAsync()
+    {
+        sensorData = await ApiService.GetSensorDataAsync();
+    }
+    private async Task<GridDataProviderResult<SensorData>> EmployeesDataProvider(GridDataProviderRequest<SensorData> request)
+    {
+        if (sensorData is null) 
+            sensorData = await ApiService.GetSensorDataAsync();
+
+        return await Task.FromResult(request.ApplyTo(sensorData));
+    }
+
+    private IEnumerable<SensorData> GetEmployees()
+    {
+      
+      return sensorData ?? new List<SensorData>();
+            
+        
+    }
+}
+
+@code {
+
+   
+}

@@ -1,5 +1,6 @@
 using Slim_Groenbeheer.Components;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -9,6 +10,8 @@ builder.Services.AddRazorComponents()
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://192.168.133.14:3000/") });
 builder.Services.AddScoped<ApiService>();
+builder.Services.AddSingleton<SerialReaderData>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

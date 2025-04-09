@@ -1,0 +1,28 @@
+﻿@page "/serial-reader"
+@inject SerialReaderData serialReader
+<h3>Seriële Data</h3>
+<p>@ontvangenData</p>   
+@code {
+private string ontvangenData = "";
+    protected override void OnInitialized()
+    {
+        
+        serialReader.DataReceived += SerialPort_DataReceived;
+        serialReader.SerialPortConnect();
+        //Console.WriteLine("Blazor heeft verbinding gemaakt met de seriële poort.");
+    }
+
+    private void SerialPort_DataReceived(string message)
+    {
+        ontvangenData = message;
+        Console.WriteLine($"Blazor heeft ontvangen: {message}");
+        // Je kunt hier ook StateHasChanged() aanroepen als je UI wilt updaten
+    }
+   
+    public void Dispose()
+    {
+        serialReader.DataReceived -= SerialPort_DataReceived;
+        serialReader.SerialPortExit();
+    }
+}
+

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Slim_Groenbeheer", "Slim_Groenbeheer\Slim_Groenbeheer.csproj", "{FB28AFC9-E8A3-473B-A790-A30FEF952A73}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialReader", "SerialReader\SerialReader.csproj", "{6EA2BC6A-F115-4F76-9B8E-859F94F71789}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{FB28AFC9-E8A3-473B-A790-A30FEF952A73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB28AFC9-E8A3-473B-A790-A30FEF952A73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB28AFC9-E8A3-473B-A790-A30FEF952A73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EA2BC6A-F115-4F76-9B8E-859F94F71789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EA2BC6A-F115-4F76-9B8E-859F94F71789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EA2BC6A-F115-4F76-9B8E-859F94F71789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EA2BC6A-F115-4F76-9B8E-859F94F71789}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
