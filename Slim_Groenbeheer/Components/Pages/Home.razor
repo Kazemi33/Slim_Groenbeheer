@@ -44,9 +44,9 @@
          var datasets = new List<IChartDataset>(); 
 
          var kleuren = waarden.Select(w => 
-            w < 18 ? ColorUtility.CategoricalTwelveColors[6] :  // Blauw *@
-            w > 25 ? ColorUtility.CategoricalTwelveColors[9] :  // Rood *@
-                     ColorUtility.CategoricalTwelveColors[5]    // Groen *@
+            w < 18 ? ColorUtility.CategoricalTwelveColors[6] :  // Blauw 
+            w > 25 ? ColorUtility.CategoricalTwelveColors[9] :  // Rood 
+                     ColorUtility.CategoricalTwelveColors[5]    // Groen 
         ).ToList(); 
          var dataset1 = new BarChartDataset() 
              { 
